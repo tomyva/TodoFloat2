@@ -53,10 +53,20 @@ public partial class MainWindow : Window
     }
     public void ApplyAppearance(bool dark, double opacity, double textSize, bool alwaysOnTop)
     {
-        _isDark = dark; Opacity = opacity; Topmost = alwaysOnTop;
-        Shell.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(dark ? "#202630" : "#F7F9FC"));
-        Shell.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(dark ? "#688EB8" : "#4B78A9"));
-        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(dark ? "#F0F4FA" : "#20242A"));
+        _isDark = dark;
+        Opacity = opacity;
+        Topmost = alwaysOnTop;
+
+        // Swap theme resource dictionary
+        var merged = Application.Current.Resources.MergedDictionaries;
+        for (int i = merged.Count - 1; i >= 0; i--)
+        {
+            var src = merged[i].Source?.OriginalString ?? string.Empty;
+            if (src.Contains("Themes/")) merged.RemoveAt(i);
+        }
+        var theme = new ResourceDictionary { Source = new Uri($"Themes/{(dark ? "Dark" : "Light")}.xaml", UriKind.Relative) };
+        merged.Add(theme);
+
         Resources[SystemFonts.MessageFontSizeKey] = textSize;
     }
     private void UpdateSummary() { var done = Todos.Count(t => t.IsComplete); SummaryText.Text = $"{Todos.Count} task{(Todos.Count == 1 ? "" : "s")}  •  {done} completed"; }
